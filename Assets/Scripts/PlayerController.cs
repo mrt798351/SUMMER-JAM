@@ -4,23 +4,30 @@ using UnityEngine;
 using UnityEngine.UI;
 public class PlayerController : MonoBehaviour
 {
-    public static int bullet = 10;          // патронов в текущей обойме
-    public static int clipBulletCount = 10; // количество патронов в обойме (статично)
-    public static int bulletCountClip = 10; // количество запасных патронов в обоймах
-    public int health = 100;
+    public static int bullet = 10;          // РїР°С‚СЂРѕРЅРѕРІ РІ С‚РµРєСѓС‰РµР№ РѕР±РѕР№РјРµ
+    public static int clipBulletCount = 10; // РєРѕР»РёС‡РµСЃС‚РІРѕ РїР°С‚СЂРѕРЅРѕРІ РІ РѕР±РѕР№РјРµ (СЃС‚Р°С‚РёС‡РЅРѕ)
+    public static int bulletCountClip = 100; // РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїР°СЃРЅС‹С… РїР°С‚СЂРѕРЅРѕРІ РІ РѕР±РѕР№РјР°С…
     private bool isDead = false;
     private bool groundedPlayer = true;
     private CharacterController controller;
     private Rigidbody rb;
 
     [SerializeField] private GameObject wearpon;
+    [SerializeField] private Transform shootPointOfGun;  // С‚РѕС‡РєР° РґСѓР»Р°
     [SerializeField] private GameObject gameOverPanel;
+    public int health = 100;
     [SerializeField] private float playerSpeed = 5f;
     // [SerializeField] private float jumpForce = 10f;
     [SerializeField] private float jumpHeight = 1.0f;
     [SerializeField] private float gravityValue = -9.81f;
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float sensivity = 30;
+    [SerializeField] private LayerMask enemy;
+    [SerializeField] private float sensivity = 100;
+
+    [SerializeField] private GameObject[] effectsMuzzlePrefab;
+
+    private GameObject muzzelFlash = null;
+
 
     //private Animator _animator;
     //private SpriteRenderer _spriteRenderer;
@@ -43,7 +50,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // ПЕРСОНАЖ
+        // РџР•Р РЎРћРќРђР–
         groundedPlayer = controller.isGrounded;
 
         if (groundedPlayer && playerVelocity.y < 0)
@@ -70,18 +77,22 @@ public class PlayerController : MonoBehaviour
 
         wearpon.transform.Rotate(Input.GetAxis("Mouse Y") * Time.deltaTime * sensivity * -1, 0, Input.GetAxis("Mouse X") * Time.deltaTime * sensivity);
 
-        if (Input.GetKeyDown(KeyCode.R))  // выстрел
+        if (Input.GetKeyDown(KeyCode.R))  // РІС‹СЃС‚СЂРµР»
         {
             Reloading();
         }
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))  // выстрел
+        if (Input.GetKeyDown(KeyCode.Mouse0))  // РІС‹СЃС‚СЂРµР»
         {
             Shoot();
         }
     }
     private void FixedUpdate()
     {
+        if (muzzelFlash != null)  // СѓРґР°Р»СЏРµРј СЌС„С„СѓРєС‚ СЃС‚СЂРµР»СЊР±С‹
+        {
+            Destroy(muzzelFlash);
+        }
         //_animator.SetBool("isGrounded", _isGrounded);
     }
     public void TakeDamage(int damage)
@@ -93,15 +104,32 @@ public class PlayerController : MonoBehaviour
             gameOverPanel.SetActive(true);
         }
     }
+
     private void Shoot()
     {
         if (wearponName == "g22")
         {
             if (bullet > 0)
             {
-                bullet--;
+                bullet--;  // РјРёРЅСѓСЃ РїР°С‚СЂРѕРЅ
+                // СЃР°Рј РІС‹СЃС‚СЂРµР»
+                RaycastHit hit;  // Р»СѓС‡
+                var randEffectMuzzle = Random.Range(0, effectsMuzzlePrefab.Length);
+                if (muzzelFlash != null)
+                {
+                    Destroy(muzzelFlash);
+                }
+                muzzelFlash = Instantiate(effectsMuzzlePrefab[randEffectMuzzle], shootPointOfGun.position, shootPointOfGun.rotation);
+
+                Ray ray = new Ray(GameObject.Find("Camera").GetComponent<Camera>().transform.position, GameObject.Find("Camera").GetComponent<Camera>().transform.forward);
+                if (Physics.Raycast(ray, out hit, 1000, enemy))
+                {
+                    GameObject hitObj = hit.transform.gameObject;
+                    // hitObj.GetComponentInParent<EnemyController>().health -= 20;
+                }
+
             }
-            else  // тут щёлкаем чтобы показать что не патронов
+            else  // С‚СѓС‚ С‰С‘Р»РєР°РµРј С‡С‚РѕР±С‹ РїРѕРєР°Р·Р°С‚СЊ С‡С‚Рѕ РЅРµ РїР°С‚СЂРѕРЅРѕРІ
             {
             }
         }
