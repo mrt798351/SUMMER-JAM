@@ -13,6 +13,6 @@ public class UIManager : MonoBehaviour
     {
         TMP_Text tmp_text;
         tmp_text = bulletText.GetComponent<TMP_Text>();
-        tmp_text.text = PlayerController.bulletCount.ToString() + " |" + PlayerController.clipBulletCount.ToString();
+        tmp_text.text = PlayerController.bullet.ToString() + " |" + PlayerController.bulletCountClip.ToString();
     }
 }

@@ -4,25 +4,28 @@ using UnityEngine;
 using UnityEngine.UI;
 public class PlayerController : MonoBehaviour
 {
-    public static int bulletCount = 10;
-    public static int clipBulletCount = 10; // количество патронов в обойме
+    public static int bullet = 10;          // патронов в текущей обойме
+    public static int clipBulletCount = 10; // количество патронов в обойме (статично)
+    public static int bulletCountClip = 10; // количество запасных патронов в обоймах
     public int health = 100;
     private bool isDead = false;
     private bool groundedPlayer = true;
     private CharacterController controller;
-
-    [SerializeField] private GameObject gameOverPanel;
     private Rigidbody rb;
+
+    [SerializeField] private GameObject wearpon;
+    [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private float playerSpeed = 5f;
-    [SerializeField] private float jumpForce = 10f;
+    // [SerializeField] private float jumpForce = 10f;
     [SerializeField] private float jumpHeight = 1.0f;
     [SerializeField] private float gravityValue = -9.81f;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float sensivity = 30;
 
     //private Animator _animator;
     //private SpriteRenderer _spriteRenderer;
 
-    public string wearponName = "g22";
+    public string wearponName = "pm";
     private Vector3 playerVelocity;
 
 
@@ -32,9 +35,9 @@ public class PlayerController : MonoBehaviour
         rb = this.gameObject.GetComponent<Rigidbody>();
         //_animator = GetComponent<Animator>();
         //_spriteRenderer = GetComponent<SpriteRenderer>();
-        if (wearponName == "g22")
+        if (wearponName == "pm")
         {
-            clipBulletCount = 10;
+            clipBulletCount = 8;
         }
     }
 
@@ -65,7 +68,14 @@ public class PlayerController : MonoBehaviour
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        wearpon.transform.Rotate(Input.GetAxis("Mouse Y") * Time.deltaTime * sensivity * -1, 0, Input.GetAxis("Mouse X") * Time.deltaTime * sensivity);
+
+        if (Input.GetKeyDown(KeyCode.R))  // выстрел
+        {
+            Reloading();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))  // выстрел
         {
             Shoot();
         }
@@ -87,12 +97,27 @@ public class PlayerController : MonoBehaviour
     {
         if (wearponName == "g22")
         {
-            if (bulletCount > 0)
+            if (bullet > 0)
             {
-                bulletCount--;
+                bullet--;
             }
             else  // тут щёлкаем чтобы показать что не патронов
             {
+            }
+        }
+    }
+
+    private void Reloading()
+    {
+        if (wearponName == "g22")
+        {
+            if (clipBulletCount - bullet <= bulletCountClip) {
+                bulletCountClip -= clipBulletCount - bullet;
+                bullet = clipBulletCount;
+            } else
+            {
+                bullet += bulletCountClip;
+                bulletCountClip = 0;
             }
         }
     }
