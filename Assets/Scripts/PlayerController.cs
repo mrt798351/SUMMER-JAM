@@ -17,7 +17,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject gameOverPanel;
     public int health = 100;
     [SerializeField] private float playerSpeed = 5f;
-    // [SerializeField] private float jumpForce = 10f;
     [SerializeField] private float jumpHeight = 1.0f;
     [SerializeField] private float gravityValue = -9.81f;
     [SerializeField] private LayerMask groundLayer;
@@ -107,7 +106,7 @@ public class PlayerController : MonoBehaviour
 
     private void Shoot()
     {
-        if (wearponName == "g22")
+        if (wearponName == "pm")
         {
             if (bullet > 0)
             {
@@ -124,8 +123,9 @@ public class PlayerController : MonoBehaviour
                 Ray ray = new Ray(GameObject.Find("Camera").GetComponent<Camera>().transform.position, GameObject.Find("Camera").GetComponent<Camera>().transform.forward);
                 if (Physics.Raycast(ray, out hit, 1000, enemy))
                 {
-                    GameObject hitObj = hit.transform.gameObject;
-                    // hitObj.GetComponentInParent<EnemyController>().health -= 20;
+                    EnemyController hitObj = hit.transform.gameObject.GetComponent<EnemyController>();
+                    hitObj.health -= 20;
+
                 }
 
             }
@@ -137,7 +137,7 @@ public class PlayerController : MonoBehaviour
 
     private void Reloading()
     {
-        if (wearponName == "g22")
+        if (wearponName == "pm")
         {
             if (clipBulletCount - bullet <= bulletCountClip) {
                 bulletCountClip -= clipBulletCount - bullet;
