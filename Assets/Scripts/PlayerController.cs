@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
 
     [SerializeField] private GameObject wearpon;
+    [SerializeField] private Animator animator;
     [SerializeField] private Transform shootPointOfGun;  // точка дула
     [SerializeField] private GameObject gameOverPanel;
     public int health = 100;
@@ -28,7 +29,6 @@ public class PlayerController : MonoBehaviour
     private GameObject muzzelFlash = null;
 
 
-    //private Animator _animator;
     //private SpriteRenderer _spriteRenderer;
 
     public string wearponName = "pm";
@@ -39,9 +39,10 @@ public class PlayerController : MonoBehaviour
     {
         controller = gameObject.GetComponent<CharacterController>();
         rb = this.gameObject.GetComponent<Rigidbody>();
-        //_animator = GetComponent<Animator>();
+
         //_spriteRenderer = GetComponent<SpriteRenderer>();
-        if (wearponName == "pm")
+
+        if (wearponName == "pm")  // устанавливаем величину обоймы
         {
             clipBulletCount = 8;
         }
@@ -65,7 +66,6 @@ public class PlayerController : MonoBehaviour
             gameObject.transform.forward = move;
         }
 
-        // Changes the height position of the player..
         if (Input.GetButtonDown("Jump") && groundedPlayer)
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
@@ -92,7 +92,7 @@ public class PlayerController : MonoBehaviour
         {
             Destroy(muzzelFlash);
         }
-        //_animator.SetBool("isGrounded", _isGrounded);
+        // animator.SetBool("isGrounded", groundedPlayer);
     }
     public void TakeDamage(int damage)
     {
@@ -106,46 +106,56 @@ public class PlayerController : MonoBehaviour
 
     private void Shoot()
     {
-        if (wearponName == "pm")
-        {
-            if (bullet > 0)
+        if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Reloading State"))
+        {  // если сейчас не воспроизводится анимация перезарядки
+            if (wearponName == "pm")
             {
-                bullet--;  // минус патрон
-                // сам выстрел
-                RaycastHit hit;  // луч
-                var randEffectMuzzle = Random.Range(0, effectsMuzzlePrefab.Length);
-                if (muzzelFlash != null)
+                if (bullet > 0)
                 {
-                    Destroy(muzzelFlash);
-                }
-                muzzelFlash = Instantiate(effectsMuzzlePrefab[randEffectMuzzle], shootPointOfGun.position, shootPointOfGun.rotation);
+                    bullet--;  // минус патрон
+                               // сам выстрел
+                    RaycastHit hit;  // луч
+                    var randEffectMuzzle = Random.Range(0, effectsMuzzlePrefab.Length);
+                    if (muzzelFlash != null)
+                    {
+                        Destroy(muzzelFlash);
+                    }
+                    muzzelFlash = Instantiate(effectsMuzzlePrefab[randEffectMuzzle], shootPointOfGun.position, shootPointOfGun.rotation);
 
-                Ray ray = new Ray(GameObject.Find("Camera").GetComponent<Camera>().transform.position, GameObject.Find("Camera").GetComponent<Camera>().transform.forward);
-                if (Physics.Raycast(ray, out hit, 1000, enemy))
+                    Ray ray = new Ray(GameObject.Find("Camera").GetComponent<Camera>().transform.position, GameObject.Find("Camera").GetComponent<Camera>().transform.forward);
+                    if (Physics.Raycast(ray, out hit, 1000, enemy))
+                    {
+                        EnemyController hitObj = hit.transform.gameObject.GetComponent<EnemyController>();
+                        hitObj.health -= 20;
+
+                    }
+
+                }
+                else  // тут щёлкаем чтобы показать что патронов тютю
                 {
-                    EnemyController hitObj = hit.transform.gameObject.GetComponent<EnemyController>();
-                    hitObj.health -= 20;
-
                 }
 
-            }
-            else  // тут щёлкаем чтобы показать что не патронов
-            {
             }
         }
     }
 
     private void Reloading()
     {
-        if (wearponName == "pm")
-        {
-            if (clipBulletCount - bullet <= bulletCountClip) {
-                bulletCountClip -= clipBulletCount - bullet;
-                bullet = clipBulletCount;
-            } else
+        if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Reloading State"))
+        {  // если сейчас не воспроизводится анимация перезарядки
+            if (wearponName == "pm")
             {
-                bullet += bulletCountClip;
-                bulletCountClip = 0;
+                animator.SetTrigger("reload");
+                if (clipBulletCount - bullet <= bulletCountClip)
+                {
+                    bulletCountClip -= clipBulletCount - bullet;
+                    bullet = clipBulletCount;
+                }
+                else
+                {
+                    bullet += bulletCountClip;
+                    bulletCountClip = 0;
+                }
             }
         }
     }
